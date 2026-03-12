@@ -496,14 +496,11 @@ class CustomConversationConfigFlow(ConfigFlow, domain=DOMAIN):
         config_entry: ConfigEntry,
     ) -> OptionsFlow:
         """Create the options flow."""
-        return CustomConversationOptionsFlow(config_entry)
+        return CustomConversationOptionsFlow()
 
 
 class CustomConversationOptionsFlow(OptionsFlow):
     """Custom Conversation config flow options handler."""
-
-    def __init__(self, config_entry: ConfigEntry) -> None:
-        """Initialize options flow."""
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
