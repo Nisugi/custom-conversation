@@ -118,11 +118,7 @@ class CustomConversationConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Custom Conversation."""
 
     VERSION = CONFIG_VERSION
-
-    def __init__(self) -> None:
-        """Initialize the config flow."""
-        super().__init__()
-        self._flow_data: dict[str, Any] = {}
+    _flow_data: dict[str, Any] = {}
 
     async def _validate_credentials_and_get_models(
         self, user_input: dict[str, Any], is_secondary: bool = False
