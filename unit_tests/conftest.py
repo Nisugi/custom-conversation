@@ -44,7 +44,7 @@ def hass(hass: HomeAssistant) -> HomeAssistant:
     return hass
 
 @pytest.fixture
-def config_entry(hass: HomeAssistant) -> MockConfigEntry:
+async def config_entry(hass: HomeAssistant) -> MockConfigEntry:
     """Create a mock config entry."""
     entry = MockConfigEntry(
         title="Test",
@@ -68,8 +68,8 @@ def config_entry(hass: HomeAssistant) -> MockConfigEntry:
         }
     )
     entry.add_to_hass(hass)
-    hass.config_entries.async_setup(entry.entry_id)
-    hass.async_block_till_done()
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
     return entry
 
 @pytest.fixture(autouse=True)
