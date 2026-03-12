@@ -118,7 +118,11 @@ class CustomConversationConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Custom Conversation."""
 
     VERSION = CONFIG_VERSION
-    _flow_data: dict[str, Any] = {}
+
+    def __init__(self) -> None:
+        """Initialize the config flow."""
+        super().__init__()
+        self._flow_data: dict[str, Any] = {}
 
     async def _validate_credentials_and_get_models(
         self, user_input: dict[str, Any], is_secondary: bool = False
@@ -321,6 +325,10 @@ class CustomConversationConfigFlow(ConfigFlow, domain=DOMAIN):
                     CONF_PRIMARY_PROVIDER
                 ].key
 
+            # Remove transient flow keys that shouldn't be persisted
+            for key in (CONFIGURING_SECONDARY_PROVIDER, "changed_provider"):
+                final_data.pop(key, None)
+
             return self.async_create_entry(
                 title="Custom Conversation",
                 data=final_data,
@@ -461,6 +469,10 @@ class CustomConversationConfigFlow(ConfigFlow, domain=DOMAIN):
                 final_data[CONF_PRIMARY_PROVIDER] = self._flow_data[
                     CONF_PRIMARY_PROVIDER
                 ].key
+
+            # Remove transient flow keys that shouldn't be persisted
+            for key in (CONFIGURING_SECONDARY_PROVIDER, "changed_provider"):
+                final_data.pop(key, None)
 
             return self.async_update_reload_and_abort(
                 entry, data=final_data, reason="reconfigure_successful"

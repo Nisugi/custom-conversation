@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Any
 
 from langfuse import Langfuse
@@ -119,7 +119,7 @@ class PromptManager:
         if config_entry and config_entry.options.get(CONF_LANGFUSE_SECTION, {}).get(
             CONF_ENABLE_LANGFUSE
         ):
-            prompt_object, langfuse_prompt = await self._get_langfuse_prompt(
+            langfuse_result = await self._get_langfuse_prompt(
                 config_entry.options.get(CONF_LANGFUSE_SECTION, {}).get(
                     CONF_LANGFUSE_BASE_PROMPT_ID
                 ),
@@ -130,8 +130,8 @@ class PromptManager:
                     "user_name": context.user_name,
                 },
             )
-            if langfuse_prompt:
-                return prompt_object, langfuse_prompt
+            if langfuse_result is not None:
+                return langfuse_result
 
         try:
             base_prompt = self._get_prompt_config(
@@ -164,7 +164,7 @@ class PromptManager:
         if config_entry and config_entry.options.get(CONF_LANGFUSE_SECTION, {}).get(
             CONF_ENABLE_LANGFUSE
         ):
-            prompt_object, langfuse_prompt = await self._get_langfuse_prompt(
+            langfuse_result = await self._get_langfuse_prompt(
                 config_entry.options.get(CONF_LANGFUSE_SECTION, {}).get(
                     CONF_LANGFUSE_API_PROMPT_ID
                 ),
@@ -188,8 +188,8 @@ class PromptManager:
                     ),
                 },
             )
-            if langfuse_prompt:
-                return prompt_object, langfuse_prompt
+            if langfuse_result is not None:
+                return langfuse_result
         prompt_parts = []
 
         if not context.exposed_entities:
@@ -269,7 +269,6 @@ class LangfuseClient:
         self._client = client
         self.hass = hass
         self.prompts = prompts
-        self.score_config_id = score_config_id
         self.score_config_id = score_config_id
 
     @classmethod
@@ -387,7 +386,7 @@ class LangfuseClient:
                 lambda: self._client.get_traces(
                     name="cc_process",
                     tags=f"device_id:{device_id}",
-                    from_timestamp=(datetime.now() - timedelta(minutes=10)),
+                    from_timestamp=(dt_util.now() - timedelta(minutes=10)),
                 )
             )
             LOGGER.debug("Traces found for device %s: %s", device_id, traces.data)

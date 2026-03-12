@@ -3,7 +3,6 @@
 from litellm import OpenAIError, image_generation
 import voluptuous as vol
 
-from homeassistant.const import CONF_API_KEY
 from homeassistant.core import (
     HomeAssistant,
     ServiceCall,
@@ -18,7 +17,8 @@ from homeassistant.helpers import (
 )
 
 from .const import (
-    CONF_BASE_URL,
+    CONF_PRIMARY_API_KEY,
+    CONF_PRIMARY_BASE_URL,
     DOMAIN,
     LANGFUSE_SCORE_NEGATIVE,
     LANGFUSE_SCORE_POSITIVE,
@@ -44,8 +44,8 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         try:
 
             response = await hass.async_add_executor_job(lambda: image_generation(
-                api_key=entry.data.get(CONF_API_KEY),
-                base_url=entry.data.get(CONF_BASE_URL),
+                api_key=entry.data.get(CONF_PRIMARY_API_KEY),
+                base_url=entry.data.get(CONF_PRIMARY_BASE_URL),
                 model="dall-e-3",
                 prompt=call.data["prompt"],
                 size=call.data["size"],
@@ -100,6 +100,10 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         assist_entity = call.data["assist_entity"]
         entity_registry = er.async_get(hass)
         entity_entry = entity_registry.async_get(assist_entity)
+        if entity_entry is None:
+            raise HomeAssistantError(
+                f"Entity {assist_entity} not found in the entity registry."
+            )
         device_id = entity_entry.device_id
         score = call.data["score"]
 
