@@ -4,12 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import timedelta
-from typing import Any
-
-from langfuse import Langfuse
-from langfuse.api import CreateScoreConfigRequest, ScoreConfigDataType
-from langfuse.model import Prompt
-from langfuse import observe
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -51,6 +46,12 @@ from .const import (
     LANGFUSE_SCORE_POSITIVE,
     LOGGER,
 )
+
+from .langfuse_compat import observe as _lazy_observe
+
+if TYPE_CHECKING:
+    from langfuse import Langfuse
+    from langfuse.model import Prompt
 
 
 class LangfuseError(Exception):
@@ -97,7 +98,7 @@ class PromptManager:
             key, default
         )
 
-    @observe(capture_input=False)
+    @_lazy_observe(capture_input=False)
     async def _get_langfuse_prompt(
         self, prompt_id: str, variables: dict[str, Any]
     ) -> tuple[Prompt, str] | None:
@@ -111,7 +112,7 @@ class PromptManager:
             LOGGER.error("Error getting Langfuse prompt: %s", err)
             return None
 
-    @observe(capture_input=False)
+    @_lazy_observe(capture_input=False)
     async def async_get_base_prompt(
         self, context: PromptContext, config_entry: ConfigEntry | None = None
     ) -> tuple[Prompt, str] | str:
@@ -156,7 +157,7 @@ class PromptManager:
             LOGGER.error("Error rendering base prompt: %s", err)
             raise
 
-    @observe(capture_input=False)
+    @_lazy_observe(capture_input=False)
     async def get_api_prompt(
         self, context: PromptContext, config_entry: ConfigEntry | None = None
     ) -> tuple[Prompt, str] | str:
@@ -280,6 +281,10 @@ class LangfuseClient:
             CONF_ENABLE_LANGFUSE
         ):
             return None
+
+        from langfuse import Langfuse as LangfuseClass
+        from langfuse.api import CreateScoreConfigRequest, ScoreConfigDataType
+
         # Set up prompt dictionary from config entry
         prompts = {
             config_entry.options.get(CONF_LANGFUSE_SECTION, {}).get(
@@ -295,8 +300,8 @@ class LangfuseClient:
         }
         try:
 
-            def create_client() -> Langfuse:
-                return Langfuse(
+            def create_client() -> LangfuseClass:
+                return LangfuseClass(
                     public_key=config_entry.options[CONF_LANGFUSE_SECTION][
                         CONF_LANGFUSE_PUBLIC_KEY
                     ],
@@ -355,7 +360,7 @@ class LangfuseClient:
             LOGGER.error("Error initializing Langfuse client: %s", err)
             raise LangfuseInitError("Failed to initialize Langfuse client") from err
 
-    @observe(capture_input=False)
+    @_lazy_observe(capture_input=False)
     async def get_prompt(
         self, prompt_id: str, variables: dict[str, Any]
     ) -> tuple[Prompt, str]:

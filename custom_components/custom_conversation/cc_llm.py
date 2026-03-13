@@ -1,5 +1,5 @@
 """Replaces Some of Home Assistant's helpers/llm.py code to allow us to choose the correct prompt."""
-from langfuse.decorators import langfuse_context, observe
+from .langfuse_compat import langfuse_context, observe
 
 from homeassistant.components.conversation import (
     ChatLog,

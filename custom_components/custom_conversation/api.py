@@ -5,9 +5,8 @@ from __future__ import annotations
 from decimal import Decimal
 from enum import Enum
 from functools import cache, partial
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from langfuse.model import Prompt
 import slugify as unicode_slug
 import voluptuous as vol
 
@@ -38,6 +37,9 @@ from homeassistant.util.json import JsonObjectType
 
 from .const import CONF_IGNORED_INTENTS, LLM_API_ID
 from .prompt_manager import PromptContext, PromptManager
+
+if TYPE_CHECKING:
+    from langfuse.model import Prompt
 
 
 class CustomLLMAPI(llm.API):

@@ -5,7 +5,7 @@ from collections.abc import AsyncGenerator, Callable
 import json
 from typing import TYPE_CHECKING, Any, Literal, Union, cast
 
-from langfuse.decorators import langfuse_context, observe
+from .langfuse_compat import langfuse_context, observe
 
 if TYPE_CHECKING:
     from langfuse.types import PromptClient
