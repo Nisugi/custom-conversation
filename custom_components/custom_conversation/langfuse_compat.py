@@ -8,6 +8,7 @@ runtime so that module-level imports don't crash during HA startup.
 from __future__ import annotations
 
 import functools
+import inspect
 from typing import Any
 
 
@@ -29,18 +30,20 @@ class _LazyLangfuseContext:
 langfuse_context = _LazyLangfuseContext()
 
 
-def observe(name: str | None = None, *, capture_input: bool = True) -> Any:
+def observe(
+    name: str | None = None, *, capture_input: bool = True, **extra_kwargs: Any
+) -> Any:
     """Lazy wrapper for langfuse @observe decorator.
 
     Returns a decorator that defers the langfuse import to the first call.
-    For async functions, applies @observe at call time.
+    Accepts all kwargs that the real langfuse @observe accepts.
     """
     def decorator(func: Any) -> Any:
         @functools.wraps(func)
         async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
             try:
                 from langfuse.decorators import observe as _observe
-                kw: dict[str, Any] = {"capture_input": capture_input}
+                kw: dict[str, Any] = {"capture_input": capture_input, **extra_kwargs}
                 if name is not None:
                     kw["name"] = name
                 decorated = _observe(**kw)(func)
@@ -52,7 +55,7 @@ def observe(name: str | None = None, *, capture_input: bool = True) -> Any:
         def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
             try:
                 from langfuse.decorators import observe as _observe
-                kw: dict[str, Any] = {"capture_input": capture_input}
+                kw: dict[str, Any] = {"capture_input": capture_input, **extra_kwargs}
                 if name is not None:
                     kw["name"] = name
                 decorated = _observe(**kw)(func)
@@ -60,8 +63,7 @@ def observe(name: str | None = None, *, capture_input: bool = True) -> Any:
             except Exception:
                 return func(*args, **kwargs)
 
-        import asyncio
-        if asyncio.iscoroutinefunction(func):
+        if inspect.iscoroutinefunction(func):
             return async_wrapper
         return sync_wrapper
     return decorator
